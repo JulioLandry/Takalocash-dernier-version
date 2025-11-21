@@ -23,17 +23,15 @@ header{background:#0c0c0c;color:#fff;padding:24px 16px 8px;position:sticky;top:0
 }  
 .flags{display:flex;gap:8px}  
 .flag{width:28px;height:18px;border-radius:3px;overflow:hidden;cursor:pointer;border:1px solid #0003;background-image:url('https://twemoji.maxcdn.com/2/72x72/1f1eb-1f1f7.png'); background-size: cover;}
-/* Flag Sprites (assuming a mechanism for flags, using placeholder CSS) */
-/* The flags are small and usually handled by an image sprite or CSS. Using inline image background for simplicity here: */
-.flag[data-lang="en"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1ec-1f1e7.png'); } /* UK flag for simplicity */
-.flag[data-lang="fr"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1eb-1f1f7.png'); } /* French flag */
-.flag[data-lang="mg"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1f2-1f1ec.png'); } /* Malagasy flag */
+.flag[data-lang="en"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1ec-1f1e7.png'); } 
+.flag[data-lang="fr"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1eb-1f1f7.png'); } 
+.flag[data-lang="mg"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1f2-1f1ec.png'); } 
 
 .lang-active{outline:2px solid var(--brand)}  
 .tabs{max-width:980px;margin:14px auto 0;display:flex;gap:10px;flex-wrap:wrap;padding:0 4px 10px}  
 .tab{background:var(--brand);border:none;color:#111;font-weight:900;padding:10px 18px;border-radius:var(--pill);cursor:pointer;letter-spacing:.5px;font-size:15px;box-shadow:0 3px 0 var(--brand-2)}  
 .tab[aria-selected="true"]{background:#111;color:#fff;box-shadow:0 3px 0 #000}  
-main{max-width:980px;margin:18px auto;padding:0 12px 80px}  
+main{max-width:980px;margin:18px auto;padding:0 12px 250px} /* Increased bottom padding to 250px for fixed footer */
   
 /* ===== common UI ===== */  
 .panel{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px 14px 18px;box-shadow:0 10px 30px rgba(0,0,0,.06);margin-bottom:14px}  
@@ -60,7 +58,7 @@ main{max-width:980px;margin:18px auto;padding:0 12px 80px}
 .chip[aria-pressed="true"], .paybtn[aria-pressed="true"], .ewbtn[aria-pressed="true"]{background:var(--brand);color:#111;border-color:#d6a800}  
 .checkbox{display:flex;gap:8px;align-items:flex-start;margin-top:6px}  
 .actions{display:flex;gap:10px;align-items:center;margin-top:10px}  
-.btn{border:none;border-radius:16px;padding:12px 16px;font-weight:900;cursor:pointer}  
+.btn{border:none;border-radius:16px;padding:12px 18px;font-weight:900;cursor:pointer}  
 .btn-primary{background:var(--brand);color:#111}  
 .btn-primary:disabled{opacity:.5;cursor:not-allowed}
 .btn-ghost{
@@ -174,9 +172,9 @@ main{max-width:980px;margin:18px auto;padding:0 12px 80px}
     transform: none;
 }
 
-/* Footer Styling */
+/* Footer Styling (FIXED POSITIONING) */
 footer {
-    position: fixed;
+    position: fixed; /* FIXED position */
     bottom: 0;
     left: 0;
     width: 100%;
@@ -186,6 +184,8 @@ footer {
     padding: 15px 0;
     text-align: center;
     color: #fff;
+    /* Determine the footer height needed for main padding */
+    height: 230px; /* Estimated height for all contact buttons and links */
 }
 .contact-bar {
     max-width: 980px;
@@ -251,5 +251,11 @@ footer {
     .footer-links a {
         display: block;
         margin: 5px 0;
+    }
+    footer {
+        height: 380px; /* Adjust fixed height for mobile layout */
+    }
+    main {
+        padding-bottom: 400px; /* Adjust main padding for mobile fixed footer */
     }
 }
