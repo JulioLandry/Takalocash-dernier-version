@@ -1,4 +1,4 @@
-/* ================== CONFIG ================== */
+/* ================== CONFIG (French/Malagasy) ================== */
 const CONFIG = {
 // ---- EmailJS (DEMO values) ----
 emailjsPublicKey : "DEMO_PUBLIC_KEY_REPLACE_ME",
@@ -99,7 +99,7 @@ function chip(label, active, onClick, isExpander=false){
   return b;
 }
 
-/* ===== Render Unified Strip (Fix for chips not appearing) ===== */
+/* ===== Render Unified Strip ===== */
 function renderUnifiedStrip(mode="depot"){
   let activeSelectionKey = (mode === "transfert") ? transferTarget : currentSelection;
   
@@ -116,16 +116,12 @@ function renderUnifiedStrip(mode="depot"){
     if (!stripEl) return;
     stripEl.innerHTML = "";
     
-    // Add items  
     list.forEach(key=>{  
-      // Active chip depends on the state variable for that strip  
       stripEl.appendChild(chip(key, key===activeSelectionKey, ()=>handleSelectionClick(key, isTargetStrip ? 'transfert' : mode)));  
     });  
       
-    // Add expander button to the primary strip (Source or Transfer Target)
     if ((stripEl.id === 'unifiedStrip' && !isTargetStrip) || (stripEl.id === 'unifiedStripTransfer' && isTargetStrip)) {
-        // Ensure expander only appears once on the primary strip of the active selection type
-        if (!list.includes("LTC") || list.includes("BTC")) { // Simple check to place it on the primary strip
+        if (!list.includes("LTC") || list.includes("BTC")) { 
             const expander = chip(null, showExtraSelection, toggleSelection, true);
             stripEl.appendChild(expander);
         }
@@ -134,7 +130,7 @@ function renderUnifiedStrip(mode="depot"){
   
   const toggleSelection = () => { showExtraSelection=!showExtraSelection; renderUnifiedStrip(getActiveTab()); };
   
-  // --- 1. Source Selection Strip (Used for Depot, Withdrawal, and Transfer Source) ---
+  // --- 1. Source Selection Strip ---
   const primaryStrip = $("#unifiedStrip");
   const extraStrip = $("#unifiedStripExtra");
   
@@ -144,9 +140,9 @@ function renderUnifiedStrip(mode="depot"){
       renderStrip(extraStrip, CONFIG.extraSelection, false);
   }
 
-  // --- 2. Transfer Target Selection Strip (Used only for Transfer Target) ---
+  // --- 2. Transfer Target Selection Strip ---
   if (mode === 'transfert') {
-      activeSelectionKey = transferTarget; // Switch active key to target
+      activeSelectionKey = transferTarget; 
       
       const primaryStripT = $("#unifiedStripTransfer");
       const extraStripT = $("#unifiedStripTransferExtra");
@@ -163,7 +159,7 @@ function renderUnifiedStrip(mode="depot"){
 function updateCryptoDropdown() {
   const dropdown = $("#crypto-dropdown");
   dropdown.innerHTML = "";
-  // Filter ensures only crypto symbols appear in the dropdown
+  
   [...CONFIG.primarySelection.filter(isCrypto), ...CONFIG.extraSelection.filter(isCrypto)].forEach(sym => {
     const item = document.createElement("div");
     item.className = "crypto-item";
@@ -201,17 +197,15 @@ function updateCurrentRateDisplay() {
   const display = $("#current-rate-display");
   const fiatDisplay = $("#fiat-rate-display");
   
-  // 1. Current Crypto Rate
   const rateKey = isCrypto(currentSelection) ? currentSelection : 'BTC'; 
   const rateMGA = CONFIG.ratesMGA[rateKey];
   
   if (rateKey && rateMGA) {
     display.textContent = `1 ${rateKey} ≈ ${rateMGA.toLocaleString()} MGA`;
   } else {
-    display.textContent = "Loading...";
+    display.textContent = "Chargement...";
   }
 
-  // 2. FIAT Rates
   const rateUSD = CONFIG.ratesMGA.USD || '...';
   const rateEUR = CONFIG.ratesMGA.EUR || '...';
   fiatDisplay.textContent = `1 $ = ${rateUSD.toLocaleString()} MGA | 1 € = ${rateEUR.toLocaleString()} MGA`;
@@ -219,9 +213,8 @@ function updateCurrentRateDisplay() {
 
 /* ===== Tabs and other functions ===== */
 function getActiveTab() {
-  // This now works because the tabs are in the HTML again
   const activeTabElement = $(".tab[aria-selected='true']");
-  return activeTabElement ? activeTabElement.dataset.tab : "depot"; // Default to depot
+  return activeTabElement ? activeTabElement.dataset.tab : "depot"; 
 }
 
 function updateDepotDest(){
@@ -243,7 +236,7 @@ function refreshDepot(){
   let amountTarget = 0;
   let unitTarget = getUnit(target);
   
-  let rateNote = `1 ${unitTarget} ≈ ... MGA`;
+  let rateNote = `1 ${unitTarget} ≈ ... MGA (Taux en chargement)`;
   
   if (rateTarget > 0) {
     amountTarget = amountAfterFeeAriary / rateTarget;
@@ -253,10 +246,10 @@ function refreshDepot(){
   $("#dep-amount-crypto").value = amountTarget.toFixed(isCrypto(target) ? 8 : 2);
   $("#dep-receive-unit").textContent = unitTarget;
   $("#dep-rate-note").textContent = rateNote;
-  $("#dep-fee-note").textContent = `Fee: ${feeRate*100}%`;
+  $("#dep-fee-note").textContent = `Frais: ${feeRate*100}%`;
   
-  $("#dep-addr-label").textContent = `Your ${unitTarget} Address`; 
-  $("#dep-addr").placeholder = `Your ${unitTarget} Address/ID`; 
+  $("#dep-addr-label").textContent = `Votre adresse de réception`; // Label is fixed in French
+  $("#dep-addr").placeholder = `Votre adresse/pièce d'identité`; 
   
   updateDepotDest();
 }
@@ -281,7 +274,7 @@ function refreshRetrait(){
   
   let unitSource = getUnit(source);
   
-  let rateNote = `1 ${unitSource} ≈ ... MGA`;
+  let rateNote = `1 ${unitSource} ≈ ... MGA (Taux en chargement)`;
   
   if (rateSource > 0) {
     rateNote = `1 ${unitSource} ≈ ${rateSource.toLocaleString()} MGA`;
@@ -292,7 +285,7 @@ function refreshRetrait(){
   const phoneNum = phoneInput.value.trim();
   const detectedWallet = detectMobileWallet(phoneNum);
   const walletIcon = $("#ret-wallet-icon");
-  $("#ret-our-addr").value = getAddress(source); // Our address for the source
+  $("#ret-our-addr").value = getAddress(source); 
   
   if (phoneNum.length >= 3 && detectedWallet) {
     withdrawalWallet = detectedWallet;
@@ -306,9 +299,9 @@ function refreshRetrait(){
   $("#ret-amount-ariary").value = Math.round(amountAriary).toLocaleString();
   $("#ret-send-unit").textContent = unitSource;
   $("#ret-rate-note").textContent = rateNote;
-  $("#ret-fee-note").textContent = `Fee: ${feeRate*100}%`;
+  $("#ret-fee-note").textContent = `Frais: ${feeRate*100}%`;
   
-  $("#ret-currency-only").innerHTML = `Send only in <b>${unitSource}</b>`;
+  $("#ret-currency-only").innerHTML = `Envoyer seulement en <b>${unitSource}</b>`;
 }
 
 function refreshTransfer(){
@@ -345,7 +338,7 @@ function refreshTransfer(){
   $("#trf-amount-bot").value = amountTarget.toFixed(isCrypto(target) ? 8 : 2);
   $("#trf-bot-suffix").textContent = unitTarget;
   $("#trf-rate-note").textContent = displayRateNote;
-  $("#trf-dest-addr").placeholder = `Your ${unitTarget} Address/ID`;
+  $("#trf-dest-addr").placeholder = `Adresse de votre wallet / ID`;
 }
 
 // Main refresh orchestrator
@@ -384,10 +377,10 @@ $("#dep-pay-opts").addEventListener("click",(e)=>{
 });
 
 // Copy Buttons
-$("#ret-copy").addEventListener("click",()=>{ $("#ret-our-addr").select(); document.execCommand("copy"); toast("Copied!"); }); 
-$("#trf-copy").addEventListener("click",()=>{ $("#trf-our-addr").select(); document.execCommand("copy"); toast("Copied!"); }); 
+$("#ret-copy").addEventListener("click",()=>{ $("#ret-our-addr").select(); document.execCommand("copy"); toast("Copié!"); }); 
+$("#trf-copy").addEventListener("click",()=>{ $("#trf-our-addr").select(); document.execCommand("copy"); toast("Copié!"); }); 
 
-// Acceptance Checkboxes (Restored)
+// Acceptance Checkboxes
 ["dep","ret","trf"].forEach(k=>{
   $(`#${k}-accept`).addEventListener("change",()=>{ $(`#${k}-preview`).disabled = ! $(`#${k}-accept`).checked; });
 });
@@ -401,6 +394,5 @@ $("#trf-amount-top").addEventListener("input", refreshTransfer);
 // Initial call on load
 document.addEventListener("DOMContentLoaded", () => {
   setupCryptoSelector();
-  // No external API rate fetching included here, assuming CONFIG.ratesMGA is the source.
   refreshAll(); 
 });
