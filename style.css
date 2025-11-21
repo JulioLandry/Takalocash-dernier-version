@@ -1,0 +1,147 @@
+:root{
+  --brand:#ffbf00;        /* volamena */
+  --brand-2:#d9a300;
+  --dark:#0c0c0c;
+  --ink:#222;
+  --muted:#6d6d6d;
+  --grey:#f5f5f5;
+  --ok:#16a34a;
+  --danger:#dc2626;
+  --pill:999px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial}
+/* ===== Header ===== */
+header{background:#0c0c0c;color:#fff;padding:24px 16px 8px;position:sticky;top:0;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.topbar{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;flex-direction:column}
+.brand .title{font-weight:1000;letter-spacing:.5px;font-size:30px;color:var(--brand)}
+.brand .subtitle{
+  margin-top:6px;display:inline-block;padding:6px 12px;background:#eee;color:#111;
+  border-radius:8px;font-weight:800;letter-spacing:3px;text-transform:lowercase;
+  font-style:italic; text-shadow:0 1px 0 #fff, 0 0 6px rgba(255,191,0,.45);
+}
+.flags{display:flex;gap:8px}
+.flag{width:28px;height:18px;border-radius:3px;overflow:hidden;cursor:pointer;border:1px solid #0003;background:#fff}
+.lang-active{outline:2px solid var(--brand)}
+.tabs{max-width:980px;margin:14px auto 0;display:flex;gap:10px;flex-wrap:wrap;padding:0 4px 10px}
+.tab{background:var(--brand);border:none;color:#111;font-weight:900;padding:10px 18px;border-radius:var(--pill);cursor:pointer;letter-spacing:.5px;font-size:15px;box-shadow:0 3px 0 var(--brand-2)}
+.tab[aria-selected="true"]{background:#111;color:#fff;box-shadow:0 3px 0 #000}
+main{max-width:980px;margin:18px auto;padding:0 12px 80px}
+
+/* ===== common UI ===== */
+.panel{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px 14px 18px;box-shadow:0 10px 30px rgba(0,0,0,.06);margin-bottom:14px}
+.label{font-size:13px;color:#444;margin-bottom:6px;font-weight:800;letter-spacing:.2px; display: flex; align-items: center;}
+.field{position:relative}
+.field input, .field select, .field textarea{
+  width:100%;padding:14px;border-radius:12px;border:1px solid #ddd;background:#f9f9f9;font-size:16px;outline:none
+}
+.field input[readonly]{background:#f3f3f3;color:#333;cursor:not-allowed}
+.suffix{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:800;background:#111;color:#fff;border-radius:10px;padding:4px 8px}
+/* Prefix removed as MGA moved to suffix */
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:760px){.grid{grid-template-columns:1fr 1fr}}
+.note{font-size:12px;color:#333;margin-top:6px}
+.muted{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center}
+.pay-opts, .unified-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 8px}
+
+/* Unified strip is now a panel right below rates, above the transaction form */
+.unified-strip-panel { margin-top: 0; padding-top: 10px; } 
+
+.chip, .paybtn, .ewbtn{
+  padding:6px 10px;border-radius:14px;background:#111;color:#fff;font-weight:700;font-size:12px;cursor:pointer;border:1px solid #000;user-select:none
+}
+.chip[aria-pressed="true"], .paybtn[aria-pressed="true"], .ewbtn[aria-pressed="true"]{background:var(--brand);color:#111;border-color:#d6a800}
+.checkbox{display:flex;gap:8px;align-items:flex-start;margin-top:6px}
+.actions{display:flex;gap:10px;align-items:center;margin-top:10px}
+.btn{border:none;border-radius:16px;padding:12px 16px;font-weight:900;cursor:pointer}
+.btn-primary{background:var(--brand);color:#111}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:#000;color:#fff}
+.copybtn{border:none;border-radius:10px;padding:10px 12px;background:#111;color:#fff;cursor:pointer;font-weight:800}
+
+/* Crypto selector (Dropdown) */
+.crypto-selector { position: relative; display: inline-block; }
+.crypto-selector-btn { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.crypto-selector-btn .arrow { transition: transform 0.2s; }
+.crypto-selector-btn.open .arrow { transform: rotate(180deg); }
+.crypto-dropdown {
+  position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd;
+  border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100;
+  max-height: 300px; overflow-y: auto; display: none; width: 200px;
+}
+.crypto-dropdown.open { display: block; }
+.crypto-item { padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.crypto-item:hover { background: #f5f5f5; }
+.crypto-item.active { background: #ffbf0022; }
+.crypto-rate { font-size: 12px; color: #666; }
+
+/* Inline Expander Button */
+.expand-inline-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #999;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: transform 0.2s;
+}
+.expand-inline-btn.open {
+    transform: rotate(45deg);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+.expand-inline-btn svg { width: 14px; height: 14px; }
+
+/* Info Icon */
+.info-icon {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+}
+.info-icon svg { width: 16px; height: 16px; }
+
+/* Wallet Selector for Withdrawal */
+.select-wallet-btn {
+  background: #eee;
+  border: 1px solid #ddd;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Toast & confirm */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.25);display:none;z-index:50}
+.toast.show{display:block}
+dialog{border:none;border-radius:16px;padding:18px;max-width:720px;width:92%}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+
+/* ===== footer ===== */
+footer{background:#111;color:#fff;padding:24px 12px 40px}
+.footer-wrap{max-width:980px;margin:0 auto}
+.contact-title{font-weight:1000;letter-spacing:.3px;margin-bottom:8px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.ctaitem{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#111;border-radius:12px;padding:8px 12px;font-weight:900;cursor:pointer}
+.ctaitem[data-kind="fb"]{background:#1877f2;color:#fff}
+.ctaitem[data-kind="wa"]{background:#25D366;color:#fff}
+.ctaitem svg{width:18px;height:18px}
+.legal{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+.legal a{color:#9ad3ff;text-decoration:underline;cursor:pointer}
+.copy{font-size:12px;color:#ddd;margin-top:12px}
