@@ -1,4 +1,4 @@
-/* ================== CONFIG (French/Malagasy) ================== */
+here/* ================== CONFIG (French/Malagasy) ================== */
 const CONFIG = {
 // ---- EmailJS (DEMO values) ----
 emailjsPublicKey : "DEMO_PUBLIC_KEY_REPLACE_ME",
@@ -19,7 +19,7 @@ payoneer:{label:"Payoneer", addr:"PAYONEER-ID-EXEMPLE",     name:"TakaloCash", u
 cryptoAddrs: {
 BTC:"bc1-EXEMPLE-BTC-ADDRESS", ETH:"0xEXEMPLEETHADDRESS", LTC:"ltc1qEXEMPLE", BCH:"qzEXEMPLEBCH",
 USDT:"TEXEMPLEUSDT", USDC:"0xEXEMPLEUSDC", BUSD:"0xEXEMPLEBUSD", DAI:"0xEXEMPLEDAI",
-ADA:"addr1EXEMPLEADA", SOL:"SoLExemple1111", DOT:"dotEXEMPLE", LINK:"0xEXEMPLELINK", UNI:"0xEXEMPLEUNI", CAKE:"0xEXEMPLECAKE"
+ADA:"addr1EXEMPLEADA", SOL:"SoLExemple1111", DOT:"dotEXEMPLE", LINK:"80_000", UNI:"60_000", CAKE:"30_000"
 },
 // Mobile money prefix detection for Withdrawal
 mobilePrefixes: {
@@ -47,7 +47,7 @@ try{ emailjs.init({publicKey: CONFIG.emailjsPublicKey}); }catch(e){}
 })();
 const $ = s=>document.querySelector(s);
 const $$ = s=>document.querySelectorAll(s);
-function toast(msg, ms=2500){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), ms); }
+function toast(msg, ms=4000){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), ms); }
 
 /* ===== State ===== */
 let currentSelection="BTC";       
@@ -248,7 +248,7 @@ function refreshDepot(){
   $("#dep-rate-note").textContent = rateNote;
   $("#dep-fee-note").textContent = `Frais: ${feeRate*100}%`;
   
-  $("#dep-addr-label").textContent = `Votre adresse de réception`; // Label is fixed in French
+  $("#dep-addr-label").textContent = `Votre adresse de réception`; 
   $("#dep-addr").placeholder = `Votre adresse/pièce d'identité`; 
   
   updateDepotDest();
@@ -353,6 +353,70 @@ function refreshAll(){
   if (activeTab === "transfert") refreshTransfer();
 }
 
+/* ================== PREVIEW HANDLER (NEW) ================== */
+function showPreview(mode) {
+    let data = { mode: mode, date: new Date().toLocaleString('fr-FR') };
+
+    if (mode === 'depot') {
+        data.send = {
+            amount: parseFloat($("#dep-amount-ariary").value),
+            unit: "MGA",
+            method: payChoice,
+            dest_num: CONFIG.wallets[payChoice].num,
+            dest_name: CONFIG.wallets[payChoice].name
+        };
+        data.receive = {
+            amount: parseFloat($("#dep-amount-crypto").value),
+            unit: getUnit(currentSelection),
+            address: $("#dep-addr").value
+        };
+        data.rate = $("#dep-rate-note").textContent.replace('Frais: ', '');
+        data.fee = CONFIG.fees.depot;
+    } else if (mode === 'retrait') {
+        data.send = {
+            amount: parseFloat($("#ret-amount-send").value),
+            unit: getUnit(currentSelection),
+            our_address: getAddress(currentSelection)
+        };
+        data.receive = {
+            amount: parseFloat($("#ret-amount-ariary").value.replace(/\s/g, '')),
+            unit: "MGA",
+            method: withdrawalWallet,
+            phone: $("#ret-phone").value,
+            name: $("#ret-name").value
+        };
+        data.rate = $("#ret-rate-note").textContent.replace('Frais: ', '');
+        data.fee = CONFIG.fees.retrait;
+    } else if (mode === 'transfert') {
+        data.send = {
+            amount: parseFloat($("#trf-amount-top").value),
+            unit: getUnit(currentSelection),
+            our_address: getAddress(currentSelection)
+        };
+        data.receive = {
+            amount: parseFloat($("#trf-amount-bot").value),
+            unit: getUnit(transferTarget),
+            address: $("#trf-dest-addr").value
+        };
+        data.rate = $("#trf-rate-note").textContent;
+        data.fee = CONFIG.fees.transfert;
+    }
+    
+    // Simple validation
+    if (!data.send.amount || data.send.amount <= 0 || !data.receive.amount || data.receive.amount <= 0) {
+         return toast("Veuillez entrer des montants valides pour l'opération.");
+    }
+
+    // This is where you would normally display a modal/new page with the calculated data.
+    // For this demonstration, we use a toast to confirm data retrieval.
+    console.log(`Preview Data for ${mode.toUpperCase()}:`, data);
+    toast(`Aperçu ${mode.toUpperCase()} : Envoi de ${data.send.amount.toLocaleString()} ${data.send.unit} pour recevoir ${data.receive.amount.toLocaleString()} ${data.receive.unit}. Vérifiez la console pour les détails.`);
+
+    // Optional: Call EmailJS here if required, though typically done on final submission
+    // emailjs.send(CONFIG.emailjsServiceId, CONFIG.emailjsTemplateId, data)
+    // .then(() => toast("Envoi de la commande..."), (error) => toast("Erreur d'envoi! " + error.text));
+}
+
 /* ===== Event Listeners ===== */
 // Tab Switching
 $$(".tab").forEach(t=>{
@@ -382,7 +446,13 @@ $("#trf-copy").addEventListener("click",()=>{ $("#trf-our-addr").select(); docum
 
 // Acceptance Checkboxes
 ["dep","ret","trf"].forEach(k=>{
-  $(`#${k}-accept`).addEventListener("change",()=>{ $(`#${k}-preview`).disabled = ! $(`#${k}-accept`).checked; });
+  const acceptCheckbox = $(`#${k}-accept`);
+  const previewButton = $(`#${k}-preview`);
+
+  acceptCheckbox.addEventListener("change",()=>{ previewButton.disabled = !acceptCheckbox.checked; });
+
+  // Attach the showPreview function to the buttons
+  previewButton.addEventListener("click", () => showPreview(k));
 });
 
 // Input Listeners for Auto-Update
