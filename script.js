@@ -1,129 +1,406 @@
-// CONFIG
+/* ================== CONFIG ================== */
 const CONFIG = {
-  wallets:{mvola:{num:"0347451051",name:"Julio Landry",logo:"Mvola"},orange:{num:"0324923117",name:"Julio Landry",logo:"Orange"},airtel:{num:"0331483290",name:"Julio RANDRIANARIMANANA",logo:"Airtel"}},
-  cryptoAddrs:{BTC:"bc1-EXAMPLE-BTC",ETH:"0xEXAMPLEETH",USDT:"TEXAMPLEUSDT"},
-  ratesMGA:{BTC:150000000,ETH:9000000,USDT:4500},fees:{depot:0.003,retrait:0.005,transfert:0.004},
-  primarySelection:["BTC","ETH","USDT"],extraSelection:["LTC","BCH","ADA"]
+// ---- EmailJS (DEMO values) ----
+emailjsPublicKey : "DEMO_PUBLIC_KEY_REPLACE_ME",
+emailjsServiceId : "DEMO_SERVICE_ID",
+emailjsTemplateId: "DEMO_TEMPLATE_ID",
+// ---- Our receiving addresses / IDs ----
+wallets: {
+// Mobile money numbers
+mvola : {label:"Mvola",  num:"0347451051", name:"Julio Landry", logo:"Mvola"},
+orange: {label:"Orange Money", num:"0324923117", name:"Julio Landry", logo:"Orange"},
+airtel: {label:"Airtel Money", num:"0331483290", name:"Julio RANDRIANARIMANANA", logo:"Airtel"},
+// eWallets (Using fiat symbols for logo/unit)
+wise:   {label:"Wise",   addr:"WISE-ACCOUNT-ID-EXEMPLE",    name:"TakaloCash", unit:"$"},
+paypal: {label:"PayPal", addr:"paypal@takalocash.mg",       name:"TakaloCash", unit:"$"},
+skrill: {label:"Skrill", addr:"skrill@takalocash.mg",       name:"TakaloCash", unit:"€"},
+payoneer:{label:"Payoneer", addr:"PAYONEER-ID-EXEMPLE",     name:"TakaloCash", unit:"$"}
+},
+cryptoAddrs: {
+BTC:"bc1-EXEMPLE-BTC-ADDRESS", ETH:"0xEXEMPLEETHADDRESS", LTC:"ltc1qEXEMPLE", BCH:"qzEXEMPLEBCH",
+USDT:"TEXEMPLEUSDT", USDC:"0xEXEMPLEUSDC", BUSD:"0xEXEMPLEBUSD", DAI:"0xEXEMPLEDAI",
+ADA:"addr1EXEMPLEADA", SOL:"SoLExemple1111", DOT:"dotEXEMPLE", LINK:"0xEXEMPLELINK", UNI:"0xEXEMPLEUNI", CAKE:"0xEXEMPLECAKE"
+},
+// Mobile money prefix detection for Withdrawal
+mobilePrefixes: {
+mvola: ['034', '038'], airtel: ['033'], orange: ['032', '037']
+},
+// Combined primary and extra selection lists
+primarySelection: ["BTC","ETH","USDT","wise","paypal"],
+extraSelection: ["LTC","BCH","USDC","BUSD","DAI","ADA","SOL","DOT","LINK","UNI","CAKE","skrill","payoneer"],
+
+// rates: 1 unit = MGA (example)
+ratesMGA: {
+BTC:150_000_000, ETH:9_000_000, LTC:350_000, BCH:2_800_000,
+USDT:4_500, USDC:4_500, BUSD:4_500, DAI:4_500,
+ADA:1_200, SOL:700_000, DOT:120_000, LINK:80_000, UNI:60_000, CAKE:30_000,
+USD:4_400, EUR:4_800 // FIAT rates
+},
+fees: { depot:0.003, retrait:0.005, transfert:0.004 }
 };
 
-// State
-let currentSelection="BTC", transferTarget="USDT", payChoice="mvola", showExtraSelection=false;
-
-// Elements
+/* ================== INIT ================== */
+(function(){
+if(window.emailjs){
+try{ emailjs.init({publicKey: CONFIG.emailjsPublicKey}); }catch(e){}
+}
+})();
 const $ = s=>document.querySelector(s);
 const $$ = s=>document.querySelectorAll(s);
+function toast(msg, ms=2500){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), ms); }
 
-// Tabs
+/* ===== State ===== */
+let currentSelection="BTC";       
+let transferTarget="USDT";        
+let payChoice="mvola";            
+let showExtraSelection=false;
+let withdrawalWallet="mvola";     
+
+/* ===== Utility Functions ===== */
+function isCrypto(key) {
+  return CONFIG.cryptoAddrs.hasOwnProperty(key);
+}
+function getUnit(key) {
+    if (isCrypto(key)) return key;
+    if (CONFIG.wallets[key]?.unit) return CONFIG.wallets[key].unit;
+    return key; 
+}
+function getAddress(key) {
+    if (isCrypto(key)) return CONFIG.cryptoAddrs[key];
+    if (CONFIG.wallets[key]?.addr) return CONFIG.wallets[key].addr;
+    return CONFIG.wallets[key]?.num || "N/A";
+}
+function getRateMGA(key) {
+    if (isCrypto(key)) return CONFIG.ratesMGA[key];
+    const unit = CONFIG.wallets[key]?.unit;
+    if (unit) {
+        const rateKey = unit.replace('$', 'USD').replace('€', 'EUR');
+        return CONFIG.ratesMGA[rateKey] || 0;
+    }
+    return 0;
+}
+
+/* ===== Build selectable chips ===== */
+function chip(label, active, onClick, isExpander=false){
+  const b=document.createElement("button");
+  
+  if (isExpander) {
+    b.className = "expand-inline-btn";
+    b.classList.toggle("open", active);
+    b.innerHTML = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
+  } else {
+    // Determine class for crypto or e-wallet
+    b.className = isCrypto(label) ? "chip" : "ewbtn";
+    b.textContent = isCrypto(label) ? label : (CONFIG.wallets[label]?.label || label);
+  }
+  
+  b.setAttribute("aria-pressed", active?"true":"false");
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+/* ===== Render Unified Strip (Fix for chips not appearing) ===== */
+function renderUnifiedStrip(mode="depot"){
+  let activeSelectionKey = (mode === "transfert") ? transferTarget : currentSelection;
+  
+  const handleSelectionClick = (key, mode) => {
+    if(mode === "transfert"){
+      transferTarget = key;
+    } else {
+      currentSelection = key;
+    }
+    refreshAll();
+  };
+  
+  const renderStrip = (stripEl, list, isTargetStrip) => {
+    if (!stripEl) return;
+    stripEl.innerHTML = "";
+    
+    // Add items  
+    list.forEach(key=>{  
+      // Active chip depends on the state variable for that strip  
+      stripEl.appendChild(chip(key, key===activeSelectionKey, ()=>handleSelectionClick(key, isTargetStrip ? 'transfert' : mode)));  
+    });  
+      
+    // Add expander button to the primary strip (Source or Transfer Target)
+    if ((stripEl.id === 'unifiedStrip' && !isTargetStrip) || (stripEl.id === 'unifiedStripTransfer' && isTargetStrip)) {
+        // Ensure expander only appears once on the primary strip of the active selection type
+        if (!list.includes("LTC") || list.includes("BTC")) { // Simple check to place it on the primary strip
+            const expander = chip(null, showExtraSelection, toggleSelection, true);
+            stripEl.appendChild(expander);
+        }
+    }
+  };
+  
+  const toggleSelection = () => { showExtraSelection=!showExtraSelection; renderUnifiedStrip(getActiveTab()); };
+  
+  // --- 1. Source Selection Strip (Used for Depot, Withdrawal, and Transfer Source) ---
+  const primaryStrip = $("#unifiedStrip");
+  const extraStrip = $("#unifiedStripExtra");
+  
+  renderStrip(primaryStrip, CONFIG.primarySelection, false);
+  if (extraStrip) {
+      extraStrip.style.display = showExtraSelection ? 'flex' : 'none';
+      renderStrip(extraStrip, CONFIG.extraSelection, false);
+  }
+
+  // --- 2. Transfer Target Selection Strip (Used only for Transfer Target) ---
+  if (mode === 'transfert') {
+      activeSelectionKey = transferTarget; // Switch active key to target
+      
+      const primaryStripT = $("#unifiedStripTransfer");
+      const extraStripT = $("#unifiedStripTransferExtra");
+
+      renderStrip(primaryStripT, CONFIG.primarySelection, true);
+      if (extraStripT) {
+          extraStripT.style.display = showExtraSelection ? 'flex' : 'none';
+          renderStrip(extraStripT, CONFIG.extraSelection, true);
+      }
+  }
+}
+
+/* ===== Crypto Selector (Rates dropdown) ===== */
+function updateCryptoDropdown() {
+  const dropdown = $("#crypto-dropdown");
+  dropdown.innerHTML = "";
+  // Filter ensures only crypto symbols appear in the dropdown
+  [...CONFIG.primarySelection.filter(isCrypto), ...CONFIG.extraSelection.filter(isCrypto)].forEach(sym => {
+    const item = document.createElement("div");
+    item.className = "crypto-item";
+    if (sym === currentSelection) item.classList.add("active");
+    item.innerHTML = `
+      <span>${sym}</span>
+      <span class="crypto-rate">${CONFIG.ratesMGA[sym]?.toLocaleString() || '...'} MGA</span>
+    `;
+    item.addEventListener("click", () => {
+      currentSelection = sym;
+      $("#crypto-selector-btn").classList.remove("open");
+      dropdown.classList.remove("open");
+      refreshAll();
+    });
+    dropdown.appendChild(item);
+  });
+}
+function setupCryptoSelector() {
+  const selectorBtn = $("#crypto-selector-btn");
+  const dropdown = $("#crypto-dropdown");
+  selectorBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    selectorBtn.classList.toggle("open");
+    dropdown.classList.toggle("open");
+  });
+  document.addEventListener("click", (e) => {
+    if (!selectorBtn.contains(e.target) && !dropdown.contains(e.target)) {
+      selectorBtn.classList.remove("open");
+      dropdown.classList.remove("open");
+    }
+  });
+  updateCryptoDropdown();
+}
+function updateCurrentRateDisplay() {
+  const display = $("#current-rate-display");
+  const fiatDisplay = $("#fiat-rate-display");
+  
+  // 1. Current Crypto Rate
+  const rateKey = isCrypto(currentSelection) ? currentSelection : 'BTC'; 
+  const rateMGA = CONFIG.ratesMGA[rateKey];
+  
+  if (rateKey && rateMGA) {
+    display.textContent = `1 ${rateKey} ≈ ${rateMGA.toLocaleString()} MGA`;
+  } else {
+    display.textContent = "Loading...";
+  }
+
+  // 2. FIAT Rates
+  const rateUSD = CONFIG.ratesMGA.USD || '...';
+  const rateEUR = CONFIG.ratesMGA.EUR || '...';
+  fiatDisplay.textContent = `1 $ = ${rateUSD.toLocaleString()} MGA | 1 € = ${rateEUR.toLocaleString()} MGA`;
+}
+
+/* ===== Tabs and other functions ===== */
+function getActiveTab() {
+  // This now works because the tabs are in the HTML again
+  const activeTabElement = $(".tab[aria-selected='true']");
+  return activeTabElement ? activeTabElement.dataset.tab : "depot"; // Default to depot
+}
+
+function updateDepotDest(){
+  const destEl = $("#dep-pay-dest");
+  const nameEl = $("#dep-pay-name");
+  const wallet = CONFIG.wallets[payChoice];
+  
+  destEl.textContent = wallet.num || wallet.addr;
+  nameEl.textContent = wallet.name;
+}
+
+function refreshDepot(){
+  const target = currentSelection; 
+  const amountAriary = parseFloat($("#dep-amount-ariary").value) || 0;
+  let rateTarget = getRateMGA(target);
+  const feeRate = CONFIG.fees.depot;
+
+  const amountAfterFeeAriary = amountAriary * (1 - feeRate);
+  let amountTarget = 0;
+  let unitTarget = getUnit(target);
+  
+  let rateNote = `1 ${unitTarget} ≈ ... MGA`;
+  
+  if (rateTarget > 0) {
+    amountTarget = amountAfterFeeAriary / rateTarget;
+    rateNote = `1 ${unitTarget} ≈ ${rateTarget.toLocaleString()} MGA`;
+  }
+  
+  $("#dep-amount-crypto").value = amountTarget.toFixed(isCrypto(target) ? 8 : 2);
+  $("#dep-receive-unit").textContent = unitTarget;
+  $("#dep-rate-note").textContent = rateNote;
+  $("#dep-fee-note").textContent = `Fee: ${feeRate*100}%`;
+  
+  $("#dep-addr-label").textContent = `Your ${unitTarget} Address`; 
+  $("#dep-addr").placeholder = `Your ${unitTarget} Address/ID`; 
+  
+  updateDepotDest();
+}
+
+function detectMobileWallet(phoneNumber) {
+  const prefix = phoneNumber.substring(0, 3);
+  for (const [walletKey, prefixes] of Object.entries(CONFIG.mobilePrefixes)) {
+    if (prefixes.includes(prefix)) {
+      return walletKey;
+    }
+  }
+  return null;
+}
+
+function refreshRetrait(){
+  const source = currentSelection; 
+  const amountSource = parseFloat($("#ret-amount-send").value) || 0;
+  const rateSource = getRateMGA(source);
+  const feeRate = CONFIG.fees.retrait;
+  const amountAfterFeeSource = amountSource * (1 - feeRate);
+  const amountAriary = amountAfterFeeSource * rateSource; 
+  
+  let unitSource = getUnit(source);
+  
+  let rateNote = `1 ${unitSource} ≈ ... MGA`;
+  
+  if (rateSource > 0) {
+    rateNote = `1 ${unitSource} ≈ ${rateSource.toLocaleString()} MGA`;
+  }
+
+  // 1. Update Wallet based on phone number (Detection Logic)
+  const phoneInput = $("#ret-phone");
+  const phoneNum = phoneInput.value.trim();
+  const detectedWallet = detectMobileWallet(phoneNum);
+  const walletIcon = $("#ret-wallet-icon");
+  $("#ret-our-addr").value = getAddress(source); // Our address for the source
+  
+  if (phoneNum.length >= 3 && detectedWallet) {
+    withdrawalWallet = detectedWallet;
+    walletIcon.textContent = CONFIG.wallets[withdrawalWallet]?.logo || detectedWallet;
+  } else {
+    walletIcon.textContent = phoneNum.length > 0 ? '...' : 'Mobile Money';
+    withdrawalWallet = 'mvola'; 
+  }
+  
+  // 2. Update UI
+  $("#ret-amount-ariary").value = Math.round(amountAriary).toLocaleString();
+  $("#ret-send-unit").textContent = unitSource;
+  $("#ret-rate-note").textContent = rateNote;
+  $("#ret-fee-note").textContent = `Fee: ${feeRate*100}%`;
+  
+  $("#ret-currency-only").innerHTML = `Send only in <b>${unitSource}</b>`;
+}
+
+function refreshTransfer(){
+  const source = currentSelection;
+  const target = transferTarget;
+  const amountSource = parseFloat($("#trf-amount-top").value) || 0;
+  
+  const rateSourceMGA = getRateMGA(source);
+  const rateTargetMGA = getRateMGA(target);
+  const feeRate = CONFIG.fees.transfert;
+  
+  let amountTarget = 0;
+  let unitSource = getUnit(source);
+  let unitTarget = getUnit(target);
+  
+  let displayRateNote = `1 ${unitSource} ≈ ... ${unitTarget}`;
+  
+  if (rateSourceMGA > 0 && rateTargetMGA > 0) {
+    const amountMGA = amountSource * rateSourceMGA;
+    const amountTargetRaw = amountMGA / rateTargetMGA;
+    amountTarget = amountTargetRaw * (1 - feeRate);
+
+    const cryptoToCryptoRate = (rateSourceMGA / rateTargetMGA) * (1 - feeRate);
+    displayRateNote = `1 ${unitSource} ≈ ${cryptoToCryptoRate.toFixed(4)} ${unitTarget}`;
+  }
+
+  // Update SEND fields
+  $("#trf-amount-top").value = amountSource.toFixed(isCrypto(source) ? 8 : 2);
+  $("#trf-top-suffix").textContent = unitSource;
+  $("#trf-top-note").textContent = `Source: ${unitSource}`;
+  $("#trf-our-addr").value = getAddress(source);
+  
+  // Update RECEIVE fields
+  $("#trf-amount-bot").value = amountTarget.toFixed(isCrypto(target) ? 8 : 2);
+  $("#trf-bot-suffix").textContent = unitTarget;
+  $("#trf-rate-note").textContent = displayRateNote;
+  $("#trf-dest-addr").placeholder = `Your ${unitTarget} Address/ID`;
+}
+
+// Main refresh orchestrator
+function refreshAll(){
+  updateCurrentRateDisplay();
+  
+  const activeTab = getActiveTab();
+  renderUnifiedStrip(activeTab); 
+  
+  if (activeTab === "depot") refreshDepot();
+  if (activeTab === "retrait") refreshRetrait();
+  if (activeTab === "transfert") refreshTransfer();
+}
+
+/* ===== Event Listeners ===== */
+// Tab Switching
 $$(".tab").forEach(t=>{
   t.addEventListener("click",()=>{
     $$(".tab").forEach(x=>x.setAttribute("aria-selected","false"));
     t.setAttribute("aria-selected","true");
-    $("#panel-depot").hidden = t.dataset.tab!=="depot";
-    $("#panel-retrait").hidden = t.dataset.tab!=="retrait";
-    $("#panel-transfert").hidden = t.dataset.tab!=="transfert";
+    const tab=t.dataset.tab;
+    $("#panel-depot").hidden = tab!=="depot";
+    $("#panel-retrait").hidden = tab!=="retrait";
+    $("#panel-transfert").hidden = tab!=="transfert";
+    showExtraSelection=false;
     refreshAll();
   });
 });
 
-// Pay buttons
+// Deposit Pay Options
 $("#dep-pay-opts").addEventListener("click",(e)=>{
-  const btn = e.target.closest(".paybtn"); if(!btn) return;
-  payChoice=btn.dataset.pay;
-  $$("#dep-pay-opts .paybtn").forEach(b=>b.setAttribute("aria-pressed",b.dataset.pay===payChoice?"true":"false"));
-  $("#dep-pay-dest").textContent = CONFIG.wallets[payChoice].num;
-  $("#dep-pay-name").textContent = CONFIG.wallets[payChoice].name;
+  const btn=e.target.closest(".paybtn"); if(!btn) return;
+  payChoice = btn.dataset.pay;
+  $$("#dep-pay-opts .paybtn").forEach(b=>b.setAttribute("aria-pressed", b.dataset.pay===payChoice?"true":"false"));
+  updateDepotDest();
 });
 
-// Amount input events
-$("#dep-amount-ariary").addEventListener("input",refreshDepot);
-$("#ret-amount-send").addEventListener("input",refreshRetrait);
-$("#ret-phone").addEventListener("input",refreshRetrait);
-$("#trf-amount-top").addEventListener("input",refreshTransfer);
+// Copy Buttons
+$("#ret-copy").addEventListener("click",()=>{ $("#ret-our-addr").select(); document.execCommand("copy"); toast("Copied!"); }); 
+$("#trf-copy").addEventListener("click",()=>{ $("#trf-our-addr").select(); document.execCommand("copy"); toast("Copied!"); }); 
 
-// Unified Strip
-function chip(label, active, onClick){
-  const b=document.createElement("button");
-  b.className = "chip";
-  b.textContent = label;
-  b.setAttribute("aria-pressed",active?"true":"false");
-  b.addEventListener("click",()=>{ currentSelection=label; refreshAll(); });
-  return b;
-}
-function renderUnifiedStrip(){
-  const strip=$("#unifiedStrip");
-  strip.innerHTML="";
-  CONFIG.primarySelection.forEach(c=>strip.appendChild(chip(c,c===currentSelection)));
-}
-
-// Depot refresh
-function refreshDepot(){
-  const amountAriary = parseFloat($("#dep-amount-ariary").value)||0;
-  const rate = CONFIG.ratesMGA[currentSelection]||1;
-  const fee = CONFIG.fees.depot;
-  const amountCrypto = amountAriary*(1-fee)/rate;
-  $("#dep-amount-crypto").value = amountCrypto.toFixed(8);
-  $("#dep-receive-unit").textContent = currentSelection;
-  $("#dep-rate-note").textContent = `1 ${currentSelection} ≈ ${rate.toLocaleString()} MGA`;
-  $("#dep-fee-note").textContent = `Fee: ${fee*100}%`;
-}
-
-// Retrait refresh
-function detectWallet(phone){
-  const prefix = phone.substring(0,3);
-  for(const [k,v] of Object.entries(CONFIG.wallets)){if(v.num.startsWith(prefix))return k;}
-  return "mvola";
-}
-function refreshRetrait(){
-  const amount = parseFloat($("#ret-amount-send").value)||0;
-  const rate = CONFIG.ratesMGA[currentSelection]||1;
-  const fee = CONFIG.fees.retrait;
-  const amountAriary = amount*(1-fee)*rate;
-  $("#ret-amount-ariary").value=Math.round(amountAriary).toLocaleString();
-  const phone=$("#ret-phone").value.trim();
-  const wallet=detectWallet(phone);
-  $("#ret-wallet-icon").textContent=phone.length>0?wallet:"Mobile Money";
-  $("#ret-our-addr").value = CONFIG.cryptoAddrs[currentSelection];
-  $("#ret-rate-note").textContent=`1 ${currentSelection} ≈ ${rate.toLocaleString()} MGA`;
-  $("#ret-fee-note").textContent=`Fee: ${fee*100}%`;
-}
-
-// Transfer refresh
-function refreshTransfer(){
-  const amount=parseFloat($("#trf-amount-top").value)||0;
-  const rateSource = CONFIG.ratesMGA[currentSelection]||1;
-  const rateTarget = CONFIG.ratesMGA[transferTarget]||1;
-  const fee = CONFIG.fees.transfert;
-  const amountTarget = amount*rateSource/rateTarget*(1-fee);
-  $("#trf-amount-bot").value = amountTarget.toFixed(8);
-  $("#trf-top-suffix").textContent=currentSelection;
-  $("#trf-bot-suffix").textContent=transferTarget;
-  $("#trf-rate-note").textContent=`1 ${currentSelection} ≈ ${(rateSource/rateTarget*(1-fee)).toFixed(4)} ${transferTarget}`;
-  $("#trf-our-addr").value = CONFIG.cryptoAddrs[currentSelection];
-}
-
-// Main refresh
-function refreshAll(){
-  renderUnifiedStrip();
-  refreshDepot();
-  refreshRetrait();
-  refreshTransfer();
-}
-
-// Crypto selector (rates dropdown)
-$("#crypto-selector-btn").addEventListener("click",()=>{
-  $("#crypto-dropdown").classList.toggle("open");
-});
-CONFIG.primarySelection.concat(CONFIG.extraSelection).forEach(sym=>{
-  const div=document.createElement("div");
-  div.className="crypto-item";
-  div.textContent=sym;
-  div.addEventListener("click",()=>{
-    currentSelection=sym;
-    $("#crypto-dropdown").classList.remove("open");
-    refreshAll();
-  });
-  $("#crypto-dropdown").appendChild(div);
+// Acceptance Checkboxes (Restored)
+["dep","ret","trf"].forEach(k=>{
+  $(`#${k}-accept`).addEventListener("change",()=>{ $(`#${k}-preview`).disabled = ! $(`#${k}-accept`).checked; });
 });
 
-// Init
-document.addEventListener("DOMContentLoaded",()=>{ refreshAll(); });
+// Input Listeners for Auto-Update
+$("#dep-amount-ariary").addEventListener("input", refreshDepot);
+$("#ret-amount-send").addEventListener("input", refreshRetrait);
+$("#ret-phone").addEventListener("input", refreshRetrait);
+$("#trf-amount-top").addEventListener("input", refreshTransfer);
+
+// Initial call on load
+document.addEventListener("DOMContentLoaded", () => {
+  setupCryptoSelector();
+  // No external API rate fetching included here, assuming CONFIG.ratesMGA is the source.
+  refreshAll(); 
+});
