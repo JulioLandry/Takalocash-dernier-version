@@ -1,67 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TakaloCash – Service</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TakaloCash – Service</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
-  </header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="title">TakaloCash</div>
+      <div class="subtitle">Crypto & Mobile Money Exchange</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab" data-tab="depot" aria-selected="true">Dépôt</button>
+    <button class="tab" data-tab="retrait" aria-selected="false">Retrait</button>
+    <button class="tab" data-tab="transfert" aria-selected="false">Transfert</button>
+  </div>
+</header>
 
 <main>
+  <!-- Rates Panel -->
   <div class="panel" id="rates-panel">
-    <div class="row" style="justify-content: space-between; flex-wrap: wrap; align-items: center;">
+    <div class="row" style="justify-content: space-between; align-items:center;">
       <div><b>Current Rates:</b></div>
       <div class="crypto-selector" id="crypto-selector">
         <div class="crypto-selector-btn" id="crypto-selector-btn">
           <span id="current-rate-display">Loading...</span>
-          <svg class="arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+          <svg class="arrow" width="12" height="12" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
         <div class="crypto-dropdown" id="crypto-dropdown"></div>
       </div>
-      <button class="info-icon" title="View live exchange rates and volatility.">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-      </button>
+      <button class="info-icon" title="View live exchange rates.">i</button>
     </div>
-    <div class="rate-fiat-line" style="margin-top: 8px;">
-        <span id="fiat-rate-display">1 $ = ... MGA | 1 € = ... MGA</span>
+    <div class="rate-fiat-line">
+      <span id="fiat-rate-display">1 $ = ... MGA | 1 € = ... MGA</span>
     </div>
   </div>
 
+  <!-- Unified Strip -->
   <div class="unified-strip-panel panel">
-      <div class="unified-strip" id="unifiedStrip"></div>
-      <div class="unified-strip" id="unifiedStripExtra"></div>
-      
-      <div class="note muted" style="margin-top: 8px; margin-bottom: 0;" id="first-instruction">
-        The instruction for the crypto/e-wallet selection should appear here (e.g., *Cryptos are processed instantly. E-wallets may take up to 2 hours.*).
-      </div>
+    <div class="unified-strip" id="unifiedStrip"></div>
+    <div class="unified-strip" id="unifiedStripExtra"></div>
+    <div class="note muted" id="first-instruction">
+      Cryptos are processed instantly. E-wallets may take up to 2 hours.
+    </div>
   </div>
 
-  <section id="panel-depot" class="panel" role="tabpanel" aria-labelledby="tab-depot">
-    <div class="grid" style="margin-top:10px">
+  <!-- Dépôt -->
+  <section id="panel-depot" class="panel">
+    <div class="grid">
       <div>
-        <div class="label">Send (Mobile Money)
-          <button class="info-icon" title="Enter the Ariary amount you wish to send via mobile money.">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
+        <div class="label">Send (Mobile Money)</div>
         <div class="field">
-          <input id="dep-amount-ariary" type="number" inputmode="decimal" placeholder="Ariary amount" />
-          <span class="suffix">MGA</span> 
+          <input id="dep-amount-ariary" type="number" placeholder="Ariary amount">
+          <span class="suffix">MGA</span>
         </div>
-
         <div class="note">Choose payment method:</div>
         <div class="pay-opts" id="dep-pay-opts">
           <button class="paybtn" data-pay="mvola" aria-pressed="true">Mvola</button>
           <button class="paybtn" data-pay="orange">Orange Money</button>
           <button class="paybtn" data-pay="airtel">Airtel Money</button>
         </div>
-
         <div class="note muted" id="dep-pay-hint">
           Send to <span class="chip" id="dep-pay-dest">0347451051</span> — Name: <b id="dep-pay-name">Julio Landry</b>
         </div>
@@ -70,147 +73,93 @@
       <div>
         <div class="label">Receive</div>
         <div class="field">
-          <input id="dep-amount-crypto" type="text" placeholder="0.00000000" readonly />
-          <span class="suffix" id="dep-receive-unit">BTC</span> </div>
+          <input id="dep-amount-crypto" type="text" placeholder="0.00000000" readonly>
+          <span class="suffix" id="dep-receive-unit">BTC</span>
+        </div>
         <div class="note muted">
-          <div id="dep-rate-note">1 BTC = … MGA</div>
+          <div id="dep-rate-note">1 BTC = ... MGA</div>
           <div id="dep-fee-note">Fee: 0.3%</div>
         </div>
-
-        <div class="label" id="dep-addr-label">Your Receiving Address
-          <button class="info-icon" title="The address of your receiving wallet (crypto) or your e-wallet identifier (e-wallet).">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
+        <div class="label" id="dep-addr-label">Your Receiving Address</div>
         <div class="field">
-          <input id="dep-addr" type="text" placeholder="Your Address/ID" />
+          <input id="dep-addr" type="text" placeholder="Your Address/ID">
         </div>
       </div>
     </div>
-    </section>
+  </section>
 
-  <section id="panel-retrait" class="panel" role="tabpanel" aria-labelledby="tab-retrait" hidden>
-    <div class="grid" style="margin-top:10px">
+  <!-- Retrait -->
+  <section id="panel-retrait" class="panel" hidden>
+    <div class="grid">
       <div>
-        <div class="label">Send (Crypto or E-wallet)
-          <button class="info-icon" title="Enter the crypto or fiat amount you wish to send to us.">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
+        <div class="label">Send (Crypto or E-wallet)</div>
         <div class="field">
-          <input id="ret-amount-send" type="number" inputmode="decimal" placeholder="0.00000000" />
-          <span class="suffix" id="ret-send-unit">BTC</span> 
+          <input id="ret-amount-send" type="number" placeholder="0.00000000">
+          <span class="suffix" id="ret-send-unit">BTC</span>
         </div>
-        
-        <div class="note" style="margin-top: 10px;">
-          <div class="row">
-            <div class="field">
-              <div class="label">Our Receiving Address/ID
-                <button class="info-icon" title="This is TakaloCash's address/ID for your selected currency. Send ONLY the selected currency.">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                </button>
-              </div>
-              <input id="ret-our-addr" type="text" readonly />
-            </div>
-            <button id="ret-copy" class="btn btn-ghost">Copy</button>
-          </div>
-          <div class="muted" id="ret-currency-only">Send only in <b>BTC</b></div>
+        <div class="note muted">
+          <div id="ret-rate-note">1 BTC = ... MGA</div>
+          <div id="ret-fee-note">Fee: 0.5%</div>
+        </div>
+        <div class="label">Our Receiving Address/ID</div>
+        <div class="field">
+          <input id="ret-our-addr" type="text" readonly>
+          <button id="ret-copy" class="btn btn-ghost">Copy</button>
         </div>
       </div>
 
       <div>
         <div class="label">Receive (Mobile Money)</div>
         <div class="field">
-          <input id="ret-amount-ariary" type="text" placeholder="0 MGA" readonly />
-          <span class="suffix">MGA</span> </div>
-        <div class="note muted">
-          <div id="ret-rate-note">1 BTC = … MGA</div>
-          <div id="ret-fee-note">Fee: 0.5%</div>
+          <input id="ret-amount-ariary" type="text" placeholder="0 MGA" readonly>
+          <span class="suffix">MGA</span>
         </div>
-
-        <div class="label">Reception Method (Mobile Money)
-          <button class="info-icon" title="The system will automatically detect the provider (Mvola/Orange/Airtel) based on the number prefix.">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
+        <div class="label">Reception Method</div>
         <div class="field">
-          <input id="ret-phone" type="tel" placeholder="Mobile Money Number (e.g., 034...)" />
-          <button class="suffix select-wallet-btn" id="ret-wallet-icon">Mobile Money</button>
+          <input id="ret-phone" type="tel" placeholder="Mobile Money Number">
+          <button class="suffix" id="ret-wallet-icon">Mobile Money</button>
         </div>
-
-        <div class="label">Account Holder Name
-          <button class="info-icon" title="The full name registered with the mobile money account.">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
-        <div class="field"><input id="ret-name" type="text" placeholder="Ex: Rakoto" /></div>
+        <div class="label">Account Holder Name</div>
+        <div class="field"><input id="ret-name" type="text" placeholder="Ex: Rakoto"></div>
       </div>
     </div>
-    </section>
-  
-  <section id="panel-transfert" class="panel" role="tabpanel" aria-labelledby="tab-transfert" hidden>
-    <div class="grid" style="margin-top:10px">
+  </section>
+
+  <!-- Transfert -->
+  <section id="panel-transfert" class="panel" hidden>
+    <div class="grid">
       <div>
-        <div class="label">Send (Source)
-          <button class="info-icon" title="Enter the amount of the source crypto or e-wallet you wish to send.">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
+        <div class="label">Send (Source)</div>
         <div class="field">
-          <input id="trf-amount-top" type="number" inputmode="decimal" placeholder="0.00000000" />
-          <span class="suffix" id="trf-top-suffix">BTC</span> </div>
-        <div class="note muted" id="trf-top-note">Source: BTC</div>
-        
-        <div class="note" style="margin-top: 10px;">
-          <div class="row">
-            <div class="field">
-              <div class="label">Our Receiving Address/ID
-                <button class="info-icon" title="This is TakaloCash's address/ID for your selected currency. Send ONLY the selected currency.">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                </button>
-              </div>
-              <input id="trf-our-addr" type="text" readonly />
-            </div>
-            <button id="trf-copy" class="btn btn-ghost">Copy</button>
-          </div>
+          <input id="trf-amount-top" type="number" placeholder="0.00000000">
+          <span class="suffix" id="trf-top-suffix">BTC</span>
         </div>
-        
+        <div class="label">Our Receiving Address/ID</div>
+        <div class="field">
+          <input id="trf-our-addr" type="text" readonly>
+          <button id="trf-copy" class="btn btn-ghost">Copy</button>
+        </div>
       </div>
 
       <div>
-        
-        <div class="label" style="margin-top:8px">Choose Crypto/E-wallet to Receive
-          <button class="info-icon" title="Select the crypto or e-wallet you wish to receive after the exchange.">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          </button>
-        </div>
-        <div class="unified-strip" id="unifiedStripTransfer"></div>
-        <div class="unified-strip" id="unifiedStripTransferExtra"></div>
-        
-        <div class="label" style="margin-top:10px">Receive (Target)</div>
+        <div class="label">Receive (Target)</div>
         <div class="field">
-          <input id="trf-amount-bot" type="text" placeholder="0.00000000" readonly />
-          <span class="suffix" id="trf-bot-suffix">USDT</span> </div>
+          <input id="trf-amount-bot" type="text" placeholder="0.00000000" readonly>
+          <span class="suffix" id="trf-bot-suffix">USDT</span>
+        </div>
         <div class="note muted" id="trf-rate-note">1 BTC = 35 USDT</div>
-
+        <div class="label">Your Receiving Address</div>
+        <div class="field">
+          <input id="trf-dest-addr" type="text" placeholder="Your wallet address / ID">
+        </div>
       </div>
     </div>
-    
-    <div class="label" style="margin-top:8px">Your Receiving Address
-      <button class="info-icon" title="The address of your receiving wallet or your e-wallet ID.">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-      </button>
-    </div>
-    <div class="field">
-      <input id="trf-dest-addr" type="text" placeholder="Your wallet address / ID" />
-    </div>
+  </section>
 
-    </section>
 </main>
 
-<footer>
-  </footer>
+<footer></footer>
 
 <script src="script.js"></script>
 </body>
-                                                                                                                                                                      </html>
+</html>
