@@ -22,7 +22,13 @@ header{background:#0c0c0c;color:#fff;padding:24px 16px 8px;position:sticky;top:0
   font-style:italic; text-shadow:0 1px 0 #fff, 0 0 6px rgba(255,191,0,.45);  
 }  
 .flags{display:flex;gap:8px}  
-.flag{width:28px;height:18px;border-radius:3px;overflow:hidden;cursor:pointer;border:1px solid #0003;background:#fff}  
+.flag{width:28px;height:18px;border-radius:3px;overflow:hidden;cursor:pointer;border:1px solid #0003;background-image:url('https://twemoji.maxcdn.com/2/72x72/1f1eb-1f1f7.png'); background-size: cover;}
+/* Flag Sprites (assuming a mechanism for flags, using placeholder CSS) */
+/* The flags are small and usually handled by an image sprite or CSS. Using inline image background for simplicity here: */
+.flag[data-lang="en"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1ec-1f1e7.png'); } /* UK flag for simplicity */
+.flag[data-lang="fr"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1eb-1f1f7.png'); } /* French flag */
+.flag[data-lang="mg"] { background-image: url('https://twemoji.maxcdn.com/2/72x72/1f1f2-1f1ec.png'); } /* Malagasy flag */
+
 .lang-active{outline:2px solid var(--brand)}  
 .tabs{max-width:980px;margin:14px auto 0;display:flex;gap:10px;flex-wrap:wrap;padding:0 4px 10px}  
 .tab{background:var(--brand);border:none;color:#111;font-weight:900;padding:10px 18px;border-radius:var(--pill);cursor:pointer;letter-spacing:.5px;font-size:15px;box-shadow:0 3px 0 var(--brand-2)}  
@@ -31,7 +37,7 @@ main{max-width:980px;margin:18px auto;padding:0 12px 80px}
   
 /* ===== common UI ===== */  
 .panel{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px 14px 18px;box-shadow:0 10px 30px rgba(0,0,0,.06);margin-bottom:14px}  
-#rates-panel-title b{color:#111;} /* Ensure rates title is dark */
+#rates-panel-title b{color:#111;} 
 .label{font-size:13px;color:#444;margin-bottom:6px;font-weight:800;letter-spacing:.2px; display: flex; align-items: center;}  
 .field{position:relative}  
 .field input, .field select, .field textarea{  
@@ -46,7 +52,6 @@ main{max-width:980px;margin:18px auto;padding:0 12px 80px}
 .row{display:flex;gap:10px;align-items:center}  
 .pay-opts, .unified-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 8px}  
   
-/* Unified strip is now a panel right below rates, above the transaction form */  
 .unified-strip-panel { margin-top: 0; padding-top: 10px; }   
   
 .chip, .paybtn, .ewbtn{  
@@ -162,84 +167,89 @@ main{max-width:980px;margin:18px auto;padding:0 12px 80px}
     border: none;
     color: var(--brand) !important;
     font-weight: bold;
-    cursor: default; /* Not clickable for selection */
+    cursor: default; 
     padding: 0 12px;
     white-space: nowrap;
-    position: static; /* Override suffix position */
+    position: static; 
     transform: none;
 }
 
-/* Footer */
+/* Footer Styling */
 footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #fff;
+    background-color: var(--dark);
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
     z-index: 10;
     padding: 15px 0;
     text-align: center;
+    color: #fff;
 }
 .contact-bar {
     max-width: 980px;
     margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
     padding: 0 12px;
 }
-.contact-bar a {
-    color: var(--brand);
-    text-decoration: none;
+.contact-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.contact-btn {
+    border: none;
     font-weight: 700;
     font-size: 14px;
-}
-/* Toast Notification */
-#toast {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: #333;
+    padding: 12px 18px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
     color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 16px;
-    position: fixed;
-    z-index: 30;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 17px;
+    transition: opacity 0.2s;
 }
-#toast.show {
-    visibility: visible;
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2s;
-    animation: fadein 0.5s, fadeout 0.5s 2s;
+.contact-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
-@-webkit-keyframes fadein {
-    from {bottom: 0; opacity: 0;} 
-    to {bottom: 30px; opacity: 1;}
+.email-btn { background-color: #333; }
+.phone-btn { background-color: #444; }
+.facebook-btn { background-color: #1877f2; }
+.whatsapp-btn { background-color: #25d366; }
+
+.footer-links {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
-@keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
+.footer-links a {
+    color: #aaa;
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 12px;
 }
-@-webkit-keyframes fadeout {
-    from {bottom: 30px; opacity: 1;} 
-    to {bottom: 0; opacity: 0;}
-}
-@keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
+.footer-links p {
+    font-size: 11px;
+    color: #666;
+    margin-top: 8px;
 }
 
 @media(max-width: 600px) {
-    .contact-bar {
+    .contact-buttons {
         flex-direction: column;
         gap: 8px;
+        padding: 0 20px;
     }
-    .contact-bar a {
-        font-size: 12px;
+    .contact-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .footer-links a {
+        display: block;
+        margin: 5px 0;
     }
 }
